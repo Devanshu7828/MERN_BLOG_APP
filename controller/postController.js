@@ -14,11 +14,8 @@ exports.getPosts = async (req, res, next) => {
 
 exports.createPost = async (req, res, next) => {
   try {
-    console.log(req.body);
     const newPost = await Post.create(req.body);
-    res.status(201).json({
-      status: "Success",
-    });
+    res.status(201).json(newPost);
   } catch (err) {
     console.log(err);
   }
@@ -28,7 +25,7 @@ exports.updatePost = async (req, res, next) => {
   try {
     const { id } = req.params;
     const post = req.body;
-    
+
     const updatePost = await Post.findByIdAndUpdate(id, post, {
       new: true,
       runValidator: true,
@@ -55,7 +52,7 @@ exports.likePost = async (req, res, next) => {
         runValidator: true,
       }
     );
-    res.json(updatePost );
+    res.json(updatePost);
   } catch (err) {
     console.log(err);
   }
