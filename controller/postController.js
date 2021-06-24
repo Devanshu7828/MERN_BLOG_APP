@@ -14,8 +14,17 @@ exports.getPosts = async (req, res, next) => {
 
 exports.createPost = async (req, res, next) => {
   try {
-    const newPost = await Post.create(req.body);
-    res.status(201).json(newPost);
+
+console.log(req.userId);
+
+    const post = req.body;
+    const newPostMessage = await new Post({
+      ...post,
+      creator: req.userId,
+      createdAt: new Date().toISOString(),
+    });
+    await newPostMessage.save();
+    res.status(201).json(newPostMessage);
   } catch (err) {
     console.log(err);
   }
@@ -43,15 +52,27 @@ exports.updatePost = async (req, res, next) => {
 exports.likePost = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    if (!req.userId) {
+      return res.json({ message: "Unauthanticated" });
+    }
+
     const post = await Post.findById(id);
-    const updatePost = await Post.findByIdAndUpdate(
-      id,
-      { likeCount: post.likeCount + 1 },
-      {
-        new: true,
-        runValidator: true,
-      }
-    );
+
+    const index = post.likes.findIndex((id) => id === String(req.userId));
+
+    if (index === -1) {
+      // like the post
+      post.likes.push(req.userId);
+    } else {
+      // dislike the post
+      post.likes = post.likes.filter((id) => id !== String(req.userId));
+    }
+
+    const updatePost = await Post.findByIdAndUpdate(id, post, {
+      new: true,
+      runValidator: true,
+    });
     res.json(updatePost);
   } catch (err) {
     console.log(err);
